@@ -56,6 +56,9 @@
 \usepackage{algorithmicx}%
 \usepackage{algpseudocode}%
 \usepackage{listings}%
+
+\usepackage{graphicx}
+\usepackage{subcaption}
 %%%%
 
 %%%%%=============================================================================%%%%
@@ -157,7 +160,8 @@ malignant & 210    &   167 & 43  & 20.5\%  \\
 In this work, we consider multiple types of data augmentation.  
 
 \subsection{Augmentation to Balance Prior to Training}
-Like our original, full dataset, after our train-test split the training dataset is also not balanced.  We utilize ImageDataGenerators to augment the classes with fewer samples.  This agumentation is used to bring all classes up to 353 samples to match the largest training class, 'benign'.  This augmentation is accomplished by using an ImageDataGenerator to iterate over the input folders to generate the additional images.  The settings for this are given below, where our ImageDataGenerator is named image\_generator:
+Like our original, full dataset, after our train-test split the training dataset is also not balanced.  
+As explained by Huang {\it et al.} \cite{Huang_2016_CVPR}, there are several techniques available to deal with this imbalance with popular methods including oversampling, undersampling, and cost-sensitive learning techniques.  Because our dataset is limited size, we utilize oversampling with replacement to balance our dataset, utilizing ImageDataGenerators to augment the classes with fewer samples.  See \cite{tensorflow-imagedatagenerator}.  This agumentation is used to bring all classes up to 353 samples to match the largest training class, 'benign'.  This augmentation is accomplished by using an ImageDataGenerator to iterate over the input folders to generate the additional images.  In later sections, this technique is labeled "balancing".  The settings for this are given below, where our ImageDataGenerator is named image\_generator:
 \lstset{texcl=true,basicstyle=\small\sf,commentstyle=\small\rm,mathescape=true,escapeinside={(*}{*)}}
 \begin{lstlisting}
 image_generator.flow_from_dataframe(
@@ -177,14 +181,14 @@ image_generator.flow_from_dataframe(
 \end{lstlisting}
 
 \subsection{Augmentation to Expand Training Set Prior to Training}
-Using the same technique as above, we can utilize the same ImageDataGenerator to generate additional samples of all classes.  We utilize this approach to, for example, generate an additional 2,000 images in each class.  Note that both of these method which augment the data prior to training will increase the epoch size during training.  
+Using the same technique as above, we can utilize the same ImageDataGenerator to generate additional samples of all classes.  We utilize this approach to, for example, generate an additional 2,000 images in each class.  Note that both of these method which augment the data prior to training will increase the epoch size during training.   In later sections, this technique is labeled "expansion augmentation". 
 
 \subsection{Augmentation to Expand Diversity within the Model}
-Keras provides CNN layers which can, during training, modify the input image with techniques like rotation or contrast adjustment.  The code for this is shown in Section \ref{sec_model}.
+Keras provides CNN layers which can, during training, modify the input image with techniques like rotation or contrast adjustment.  The code for this is shown in Section \ref{sec_model}.  In later sections, this technique is labeled "model-based augmentation".
 
 
 \subsection{Augmentation to Expand Diversity within the ImageDataGenerator}
-We train our model with an ImageDataGenerator, similar to the one described above.  However, while the one discussed above was used to generate a DataFrame with the desired training dataset, we can further insert diversity during training using this same technique.
+We train our model with an ImageDataGenerator, similar to the one described above.  However, while the one discussed above was used to generate a DataFrame with the desired training dataset, we can further insert diversity during training using this same technique.  In later sections, this technique is labeled "generator-based augmentation".
 
 
 \section{Model}\label{sec_model}
@@ -227,7 +231,85 @@ Then, after the base\_model has been included, additional layers are included to
 \item classification of the three classes using softmax.
 \end{itemize}
 
-All training procedures use a batch size of 32.  All training was done using Google Colaboratory, a web-based development environment.  See \cite{colab}.  Training was done with a T4 GPU.
+All training procedures use a batch size of 32.  The learning rate was on a schedule that moved from .0001 to .00001 at the 20th epoch, if that epoch was reached, and stopped if the test set failed to produce a loss improvement in 3 consecutive epochs.  All training was done using Google Colaboratory, a web-based development environment.  See \cite{colab}.  Training was done with a T4 GPU.
+
+\section{Training Results}\label{sectraining}
+
+
+
+\begin{figure}[h]
+    \centering
+    
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{aug_data_True_aug_model_True_extra_0_malreduction_0.0/test_data_confusion_plot.png}
+        \caption{Balanced=True, Model-based Augmentation=True, Accuracy=73.7\%}
+        \label{fig:sub1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{aug_data_True_aug_model_False_extra_0_malreduction_0.0/test_data_confusion_plot.png}
+        \caption{Balanced=True, Model-based Augmentation=False, Accuracy=56.4\%}
+        \label{fig:sub2}
+    \end{subfigure}
+
+    \vspace{1em}
+
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{aug_data_False_aug_model_True_extra_0_malreduction_0.0/test_data_confusion_plot.png}
+        \caption{Balanced=False, Model-based Augmentation=True, Accuracy=74.4\%}
+        \label{fig:sub3}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{aug_data_False_aug_model_False_extra_0_malreduction_0.0/test_data_confusion_plot.png}
+        \caption{Balanced=False, Model-based Augmentation=False, Accuracy=53.2\%}
+        \label{fig:sub4}
+    \end{subfigure}
+
+    \caption{Confusion matrices for models trained with Balanancing either enabled or disabled and with Model-based Augmentation either enabled or disabled.}
+    \label{fig:balance_and_model-based}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{aug_data_True_aug_model_True_extra_2000_malreduction_0.0/test_data_confusion_plot.png}
+        \caption{Balanced=True, Model-based Augmentation=True, Additional 2,000 sample per class, 'malignant' class not reduced, Accuracy=77.6\%}
+        \label{fig:sub1b}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{aug_data_True_aug_model_False_extra_2000_malreduction_0.0/test_data_confusion_plot.png}
+        \caption{Balanced=True, Model-based Augmentation=False, Additional 2,000 sample per class, 'malignant' class not reduced, Accuracy=85.9\%}
+        \label{fig:sub2b}
+    \end{subfigure}
+
+    \vspace{1em}
+
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{aug_data_True_aug_model_True_extra_2000_malreduction_0.8/test_data_confusion_plot.png}
+        \caption{Balanced=True, Model-based Augmentation=True, Additional 2,000 sample per class, 'malignant' class reduced by 80\% before augmentation, Accuracy=80.1\%}
+        \label{fig:sub3b}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{aug_data_True_aug_model_False_extra_2000_malreduction_0.8/test_data_confusion_plot.png}
+        \caption{Balanced=True, Model-based Augmentation=False, Additional 2,000 sample per class, 'malignant' class reduced by 80\% before augmentation, Accuracy=57.7\%}
+        \label{fig:sub4b}
+    \end{subfigure}
+
+    \caption{Confusion matrices for models trained with Balanancing either enabled or disabled and with Model-based Augmentation either enabled or disabled.}
+    \label{fig:balance_and_model-based}
+\end{figure}
 
 
 \section{This is an example for first level head---section head}\label{sec3}
