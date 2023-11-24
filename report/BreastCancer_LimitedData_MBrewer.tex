@@ -96,7 +96,7 @@
 
 \begin{document}
 
-\title[Article Title]{Article Title}
+\title[Article Title]{Breast Cancer Image Classification:  Impact of Limited Data Examples}
 
 %%=============================================================%%
 %% Prefix	-> \pfx{Dr}
@@ -112,13 +112,13 @@
 
 \author*[1]{\fnm{Michael} \sur{Brewer}}\email{mlbrewer@ualr.edu}
 
-\affil*[1]{\orgdiv{Computer and Information Science}, \orgname{University of Arkansas, Little Rock}, \state{Arkansas}, \country{USA} }
+\affil*[1]{\orgdiv{Computer and Information Sciences}, \orgname{University of Arkansas, Little Rock}, \state{Arkansas}, \country{USA} }
 
 %%==================================%%
 %% sample for unstructured abstract %%
 %%==================================%%
 
-\abstract{This paper we study classifying ultrasound images of breast tissues to determine if the image contains a tumor and, if so, whether that tumor is benign or malignant.  We use this classification problem to study the effect of a small training dataset to devise strategies for handling other image classifications for more rare condittions.  In addition, we use Explainable AI approaches to observe what areas of the image is being considered and for the classifications.}
+\abstract{In this paper we study classifying ultrasound images of breast tissues to determine if the image contains a tumor and, if so, whether that tumor is benign or malignant.  We use this classification problem and to study the effect of a small training dataset to devise strategies for handling other image classifications for more rare conditions.  In addition, we use Explainable AI approaches to observe what areas of the image are positively or negatively impacting the classification prediction and, correspondingly, the accuracy of the prediction.}
 
 %%================================%%
 %% Sample for structured abstract %%
@@ -141,10 +141,40 @@
 \maketitle
 
 \section{Introduction}\label{sec_intro}
+The ability to correctly interpret medical images is critical in diagnosis and prognosis in many medical disciplines, and Convolutional Neural Networks (CNNs) have helped and continue to help revolutionalize the field \cite{2022_survey}.  Researchers have devised and trained CNNs to detect Breast Cancer ultrasound images mammograms.  For example, see \cite{AREVALO2016248}.  As one of the most common cancers in the world, Breast Cancer is widely studied, and a variety of datasets exist in the public domain for trianing models on this problem.  Other, more rare disease, have much more limited datasets world-wide, whether in the public domain or not.  Childhood cancers, for example, are much more rare than adult cancers.  Figure \ref{fig:CDC_Rates} shows the number of cancer diagnoses by age group in the US in 2019 \cite{cdc}.  Note the plot is on a log scale because of the orders of magnitude differences between childhood and adult cancers, particularly for adults over 40.  Due to this discripency, datasets for childhood cancers in general, and particularly rare childhood cancers can be prohibitively difficult to obtain.  
+
+
+\begin{figure}[!htbp]
+    \centering
+
+    \includegraphics[width=\textwidth]{img/CDC_rates.png}
+
+    \caption{Rates of cancer diagnosis by age group per 10,000 individuals \cite{cdc}}
+    \label{fig:CDC_Rates}
+\end{figure}
+
+
+Because of the availabity of breast cancer image data, in this study we use that as a proxy for other rare diseases, specifically to study how the quantity of available training samples impacts our model.  We note there are concerns with this approach.  It is not immediately evident this breast cancer study will fairly mimick the rare diseases for which it serves as proxy.  The base models used for training may have already been exposed to Breast Cancer images, for example, or the more rare cancers could have entirely different features or heterogenaties.   However, with the breast dataset, we can restrict the data of an individual class artificially, and therefore see how the model is impacted by various levels of that restriction.
 
 
 \section{Training Data and Augmentation}\label{sec_data}
-The data used for this project is available at Kaggle https://www.kaggle.com/datasets/aryashah2k/breast-ultrasound-images-dataset .  This dataset contains 780 ultrasound images from 600 patients.  These images are classified as “normal”, “benign”, or “malignant” based on a professional classification of the existence and type of breast cancer tumors.  See \cite{breast_data}.  The image classifications are imbalanced with the distribution given in Table \ref{dataclasses}.  In this study, we perform a train-test split on the data, before any augmentation, using 80\% of the data for training and 20\% for testing.  We do not reserve a portion for validation, instead using the test data set as our final evaluation dataset.  The sample counts within each class for training and testing are also shown in  Table \ref{dataclasses}.
+The data used for this project is available at Kaggle https://www.kaggle.com/datasets/aryashah2k/breast-ultrasound-images-dataset .  This dataset contains 780 ultrasound images from 600 patients.  These images are classified as “normal”, “benign”, or “malignant” based on a professional classification of the existence and type of breast cancer tumors.  See \cite{breast_data}.  A sample from the maligannt class of this dataset is shown in Figure \ref{fig:example_mal}.  The image classifications are imbalanced with the distribution given in Table \ref{dataclasses}.  In this study, we perform a train-test split on the data, before any augmentation, using 80\% of the data for training and 20\% for testing.  We do not reserve a portion for validation, instead using the test data set as our final evaluation dataset.  The number of samples within each class for training and testing are also shown in  Table \ref{dataclasses}.
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics[width=\textwidth]{img/mal_192.png}
+    \caption{Randomly selected image from the malignant classification group.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics[width=\textwidth]{img/mal_192_mask.png}
+    \caption{Associated mask corresponding to the malignant tumor.}
+  \end{subfigure}
+  \caption{Comparison of images and masks.}
+   \label{fig:example_mal}
+\end{figure}
+
 \begin{table}[h]
 \caption{The number of samples in each classification in the original dataset, the training set, and the test set.  The last column shows what percentage of the full class sample count is represented by the test set.}\label{dataclasses}
 \begin{tabular}{@{}lllll@{}}%
@@ -159,57 +189,38 @@ malignant & 210    &   167 & 43  & 20.5\%  \\
 \end{table}
 In this work, we consider multiple types of data augmentation.  
 
-\subsection{Augmentation to Balance Prior to Training}
-Like our original, full dataset, after our train-test split the training dataset is also not balanced.  
-As explained by Huang {\it et al.} \cite{Huang_2016_CVPR}, there are several techniques available to deal with this imbalance with popular methods including oversampling, undersampling, and cost-sensitive learning techniques.  Because our dataset is limited size, we utilize oversampling with replacement to balance our dataset, utilizing ImageDataGenerators to augment the classes with fewer samples.  See \cite{tensorflow-imagedatagenerator}.  This agumentation is used to bring all classes up to 353 samples to match the largest training class, 'benign'.  This augmentation is accomplished by using an ImageDataGenerator to iterate over the input folders to generate the additional images.  In later sections, this technique is labeled "balancing".  The settings for this are given below, where our ImageDataGenerator is named image\_generator:
+\subsection{Class Balancing}
+After perfroming the train-test split on our original dataset, the training dataset is not balanced.  
+As explained by Huang {\it et al.} \cite{Huang_2016_CVPR}, there are several techniques available to deal with this imbalance.  Popular method categories include oversampling, undersampling, and cost-sensitive learning techniques.  Because our dataset is limited in size, we utilize oversampling with replacement to balance our dataset \cite{Huang_2016_CVPR}, augmenting the classes with fewer samples \cite{tensorflow-imagedatagenerator} by varying the existing examples using techniques like scaling and rotation.  This augmentation is used to bring all classes up to 353 samples to match the largest training class, `benign'.  This augmentation is accomplished by using an ImageDataGenerator \cite{tensorflow-imagedatagenerator} to iterate over the input folders to generate the additional images and generate variations.  In later sections, this technique is labeled ``balancing".  The settings for this are given below:
 \lstset{texcl=true,basicstyle=\small\sf,commentstyle=\small\rm,mathescape=true,escapeinside={(*}{*)}}
 \begin{lstlisting}
-image_generator.flow_from_dataframe(
-        given_df,
-        target_size=(260, 260),
-        batch_size=32,
-        class_mode='categorical',
-        shuffle=True,
-        seed=42,
-        zoom_range=.4,
-        horizontal_flip=True,
-        rotation_range=40,
-        width_shift_range=.3,
-        height_shift_range=.3,
-        fill_mode='nearest',
-        color_mode='rgb')
+
+    image_generator = ImageDataGenerator(rescale=rescale,
+                                         zoom_range=.2,
+                                         horizontal_flip=True,
+                                         rotation_range=40,
+                                         width_shift_range=0.05,
+                                         height_shift_range=.05,
+                                         brightness_range=[0.9, 1.1])
+    image_generator.flow_from_dataframe(given_df,
+                                         target_size=image_size,
+                                         batch_size=batch_size,
+                                         class_mode='categorical',
+                                         shuffle=True,
+                                         seed=42)
 \end{lstlisting}
 
 \subsection{Augmentation to Expand Training Set Prior to Training}
-Using the same technique as above, we can utilize the same ImageDataGenerator to generate additional samples of all classes.  We utilize this approach to, for example, generate an additional 2,000 images in each class.  Note that both of these method which augment the data prior to training will increase the epoch size during training.   In later sections, this technique is labeled "expansion augmentation". 
+Using the same technique as above, we can utilize the same ImageDataGenerator to generate additional samples of all classes.  We utilize this approach to, for example, generate additional images beyond the number needed balance.  Note that both of these method which augment the data prior to training will increase the epoch size during training.   In later sections, this technique is labeled ``expansion augmentation", and the number of images reported is how many additional images were added to each class beyond the 353 used to balance. 
 
-\subsection{Augmentation to Expand Diversity within the Model}
-Keras provides CNN layers which can, during training, modify the input image with techniques like rotation or contrast adjustment.  The code for this is shown in Section \ref{sec_model}.  In later sections, this technique is labeled "model-based augmentation".
-
-
-\subsection{Augmentation to Expand Diversity within the ImageDataGenerator}
-We train our model with an ImageDataGenerator, similar to the one described above.  However, while the one discussed above was used to generate a DataFrame with the desired training dataset, we can further insert diversity during training using this same technique.  In later sections, this technique is labeled "generator-based augmentation".
-
+\subsection{Continuous Augmentation to Expand Diversity during Training}
+We can additionally expand the sample diversity during training.  Keras provides CNN layers which can, during training, modify the input image with techniques like rotation or contrast adjustment.  However, adding these layers adds complexity relative to continue relying on the ImageDataGenerator to provide additional diversity.  Therefore, for training-time augmentation, we rely on an ImageDataGenerator. In later sections, this technique is labeled ``continuous augmentation".  With this continuous augmentation, images will be modified differently for each epoch.  That is, expansion augmentation will generate large image sets for a single epoch, and continuous augmentation will add diversity each iteration through an epoch.  
 
 \section{Model}\label{sec_model}
-The base model, defined in code as base\_model, was constructed from EfficientNetB2 \cite{effnet}.  This base model was then enhanced with additional layers dependent upon whether model-level augementation is being performed or not.  This setting is representate as the Boolean-valued variable augment\_model.  The additional layers were defined as
-
+The base model, defined in code as base\_model, was constructed from EfficientNetB2 \cite{effnet}.  This base model was then enhanced with additional layers to make the model appropriate for our Breast Cancer classification use-case.  The model is shown below
 \lstset{texcl=true,basicstyle=\small\sf,commentstyle=\small\rm,mathescape=true,escapeinside={(*}{*)}}
 \begin{lstlisting}
-if augment_model:
-  model = tf.keras.Sequential([
-    resize_and_rescale,
-    layers.RandomFlip("horizontal_and_vertical"),
-    layers.RandomRotation(0.2),
-    layers.RandomContrast(0.2),
-    layers.RandomZoom(0.2),
-    base_model,
-    layers.GlobalAveragePooling2D(),
-    layers.BatchNormalization(),
-    layers.Dropout(top_dropout_rate, name="top_dropout"),
-    layers.Dense(num_classes, activation='softmax')
-  ])
-else:
+
   model = tf.keras.Sequential([
     resize_and_rescale,
     base_model,
@@ -222,8 +233,7 @@ else:
 
 \end{lstlisting}
 
-The first layer simply resizes input images to the expected size (260,260) and converts the anticipated 8-bit images range to [0,1].  This layer is followed by, if we are agumnenting at the model level, augmentation layers to flip, rotate, adjust contrast, and zoom, respectively.   
-Then, after the base\_model has been included, additional layers are included to perform 
+The first layer simply resizes input images to the expected size (260,260) and converts the anticipated 8-bit images range to [0,1].  Then, after the base\_model has been included, additional layers are included to perform 
 \begin{itemize}
 \item global average pooling to downsample,
 \item batch normalization to improve convergence,
@@ -231,530 +241,118 @@ Then, after the base\_model has been included, additional layers are included to
 \item classification of the three classes using softmax.
 \end{itemize}
 
-All training procedures use a batch size of 32.  The learning rate was on a schedule that moved from .0001 to .00001 at the 20th epoch, if that epoch was reached, and stopped if the test set failed to produce a loss improvement in 3 consecutive epochs.  All training was done using Google Colaboratory, a web-based development environment.  See \cite{colab}.  Training was done with a T4 GPU.
+All training procedures use a batch size of 32.  The learning rate was on a schedule that moved from .0001 to .00001 at the 20\textsuperscript{th} epoch, if that epoch was reached.  Training was terminated if the loss function, evaluated on the test set, failed to improve on the best value in 3 consecutive epochs.  All training was done using Google Colaboratory, a web-based development environment.  See \cite{colab}.  Training leveraged a T4 GPU.
 
 \section{Training Results}\label{sectraining}
-
-
-
-\begin{figure}[h]
-    \centering
-    
-    \begin{subfigure}{0.45\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{aug_data_True_aug_model_True_extra_0_malreduction_0.0/test_data_confusion_plot.png}
-        \caption{Balanced=True, Model-based Augmentation=True, Accuracy=73.7\%}
-        \label{fig:sub1}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.45\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{aug_data_True_aug_model_False_extra_0_malreduction_0.0/test_data_confusion_plot.png}
-        \caption{Balanced=True, Model-based Augmentation=False, Accuracy=56.4\%}
-        \label{fig:sub2}
-    \end{subfigure}
-
-    \vspace{1em}
-
-    \begin{subfigure}{0.45\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{aug_data_False_aug_model_True_extra_0_malreduction_0.0/test_data_confusion_plot.png}
-        \caption{Balanced=False, Model-based Augmentation=True, Accuracy=74.4\%}
-        \label{fig:sub3}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.45\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{aug_data_False_aug_model_False_extra_0_malreduction_0.0/test_data_confusion_plot.png}
-        \caption{Balanced=False, Model-based Augmentation=False, Accuracy=53.2\%}
-        \label{fig:sub4}
-    \end{subfigure}
-
-    \caption{Confusion matrices for models trained with Balanancing either enabled or disabled and with Model-based Augmentation either enabled or disabled.}
-    \label{fig:balance_and_model-based}
-\end{figure}
-
-\begin{figure}[h]
-    \centering
-    
-    \begin{subfigure}{0.45\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{aug_data_True_aug_model_True_extra_2000_malreduction_0.0/test_data_confusion_plot.png}
-        \caption{Balanced=True, Model-based Augmentation=True, Additional 2,000 sample per class, 'malignant' class not reduced, Accuracy=77.6\%}
-        \label{fig:sub1b}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.45\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{aug_data_True_aug_model_False_extra_2000_malreduction_0.0/test_data_confusion_plot.png}
-        \caption{Balanced=True, Model-based Augmentation=False, Additional 2,000 sample per class, 'malignant' class not reduced, Accuracy=85.9\%}
-        \label{fig:sub2b}
-    \end{subfigure}
-
-    \vspace{1em}
-
-    \begin{subfigure}{0.45\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{aug_data_True_aug_model_True_extra_2000_malreduction_0.8/test_data_confusion_plot.png}
-        \caption{Balanced=True, Model-based Augmentation=True, Additional 2,000 sample per class, 'malignant' class reduced by 80\% before augmentation, Accuracy=80.1\%}
-        \label{fig:sub3b}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.45\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{aug_data_True_aug_model_False_extra_2000_malreduction_0.8/test_data_confusion_plot.png}
-        \caption{Balanced=True, Model-based Augmentation=False, Additional 2,000 sample per class, 'malignant' class reduced by 80\% before augmentation, Accuracy=57.7\%}
-        \label{fig:sub4b}
-    \end{subfigure}
-
-    \caption{Confusion matrices for models trained with Balanancing either enabled or disabled and with Model-based Augmentation either enabled or disabled.}
-    \label{fig:balance_and_model-based}
-\end{figure}
-
-
-\section{This is an example for first level head---section head}\label{sec3}
-
-\subsection{This is an example for second level head---subsection head}\label{subsec2}
-
-\subsubsection{This is an example for third level head---subsubsection head}\label{subsubsec2}
-
-Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. 
-
-\section{Equations}\label{sec4}
-
-Equations in \LaTeX\ can either be inline or on-a-line by itself (``display equations''). For
-inline equations use the \verb+$...$+ commands. E.g.: The equation
-$H\psi = E \psi$ is written via the command \verb+$H \psi = E \psi$+.
-
-For display equations (with auto generated equation numbers)
-one can use the equation or align environments:
-\begin{equation}
-\|\tilde{X}(k)\|^2 \leq\frac{\sum\limits_{i=1}^{p}\left\|\tilde{Y}_i(k)\right\|^2+\sum\limits_{j=1}^{q}\left\|\tilde{Z}_j(k)\right\|^2 }{p+q}.\label{eq1}
-\end{equation}
-where,
-\begin{align}
-D_\mu &=  \partial_\mu - ig \frac{\lambda^a}{2} A^a_\mu \nonumber \\
-F^a_{\mu\nu} &= \partial_\mu A^a_\nu - \partial_\nu A^a_\mu + g f^{abc} A^b_\mu A^a_\nu \label{eq2}
-\end{align}
-Notice the use of \verb+\nonumber+ in the align environment at the end
-of each line, except the last, so as not to produce equation numbers on
-lines where no equation numbers are required. The \verb+\label{}+ command
-should only be used at the last line of an align environment where
-\verb+\nonumber+ is not used.
-\begin{equation}
-Y_\infty = \left( \frac{m}{\textrm{GeV}} \right)^{-3}
-    \left[ 1 + \frac{3 \ln(m/\textrm{GeV})}{15}
-    + \frac{\ln(c_2/5)}{15} \right]
-\end{equation}
-The class file also supports the use of \verb+\mathbb{}+, \verb+\mathscr{}+ and
-\verb+\mathcal{}+ commands. As such \verb+\mathbb{R}+, \verb+\mathscr{R}+
-and \verb+\mathcal{R}+ produces $\mathbb{R}$, $\mathscr{R}$ and $\mathcal{R}$
-respectively (refer Subsubsection~\ref{subsubsec2}).
-
-\section{Tables}\label{sec5}
-
-Tables can be inserted via the normal table and tabular environment. To put
-footnotes inside tables you should use \verb+\footnotetext[]{...}+ tag.
-The footnote appears just below the table itself (refer Tables~\ref{tab1} and \ref{tab2}). 
-For the corresponding footnotemark use \verb+\footnotemark[...]+
-
-\begin{table}[h]
-\caption{Caption text}\label{tab1}%
-\begin{tabular}{@{}llll@{}}
-\toprule
-Column 1 & Column 2  & Column 3 & Column 4\\
-\midrule
-row 1    & data 1   & data 2  & data 3  \\
-row 2    & data 4   & data 5\footnotemark[1]  & data 6  \\
-row 3    & data 7   & data 8  & data 9\footnotemark[2]  \\
-\botrule
-\end{tabular}
-\footnotetext{Source: This is an example of table footnote. This is an example of table footnote.}
-\footnotetext[1]{Example for a first table footnote. This is an example of table footnote.}
-\footnotetext[2]{Example for a second table footnote. This is an example of table footnote.}
-\end{table}
-
-\noindent
-The input format for the above table is as follows:
-
-%%=============================================%%
-%% For presentation purpose, we have included  %%
-%% \bigskip command. please ignore this.       %%
-%%=============================================%%
-\bigskip
-\begin{verbatim}
-\begin{table}[<placement-specifier>]
-\caption{<table-caption>}\label{<table-label>}%
-\begin{tabular}{@{}llll@{}}
-\toprule
-Column 1 & Column 2 & Column 3 & Column 4\\
-\midrule
-row 1 & data 1 & data 2	 & data 3 \\
-row 2 & data 4 & data 5\footnotemark[1] & data 6 \\
-row 3 & data 7 & data 8	 & data 9\footnotemark[2]\\
-\botrule
-\end{tabular}
-\footnotetext{Source: This is an example of table footnote. 
-This is an example of table footnote.}
-\footnotetext[1]{Example for a first table footnote.
-This is an example of table footnote.}
-\footnotetext[2]{Example for a second table footnote. 
-This is an example of table footnote.}
-\end{table}
-\end{verbatim}
-\bigskip
-%%=============================================%%
-%% For presentation purpose, we have included  %%
-%% \bigskip command. please ignore this.       %%
-%%=============================================%%
-
-\begin{table}[h]
-\caption{Example of a lengthy table which is set to full textwidth}\label{tab2}
-\begin{tabular*}{\textwidth}{@{\extracolsep\fill}lcccccc}
-\toprule%
-& \multicolumn{3}{@{}c@{}}{Element 1\footnotemark[1]} & \multicolumn{3}{@{}c@{}}{Element 2\footnotemark[2]} \\\cmidrule{2-4}\cmidrule{5-7}%
-Project & Energy & $\sigma_{calc}$ & $\sigma_{expt}$ & Energy & $\sigma_{calc}$ & $\sigma_{expt}$ \\
-\midrule
-Element 3  & 990 A & 1168 & $1547\pm12$ & 780 A & 1166 & $1239\pm100$\\
-Element 4  & 500 A & 961  & $922\pm10$  & 900 A & 1268 & $1092\pm40$\\
-\botrule
-\end{tabular*}
-\footnotetext{Note: This is an example of table footnote. This is an example of table footnote this is an example of table footnote this is an example of~table footnote this is an example of table footnote.}
-\footnotetext[1]{Example for a first table footnote.}
-\footnotetext[2]{Example for a second table footnote.}
-\end{table}
-
-\vfill\eject
-
-In case of double column layout, tables which do not fit in single column width should be set to full text width. For this, you need to use \verb+\begin{table*}+ \verb+...+ \verb+\end{table*}+ instead of \verb+\begin{table}+ \verb+...+ \verb+\end{table}+ environment. Lengthy tables which do not fit in textwidth should be set as rotated table. For this, you need to use \verb+\begin{sidewaystable}+ \verb+...+ \verb+\end{sidewaystable}+ instead of \verb+\begin{table*}+ \verb+...+ \verb+\end{table*}+ environment. This environment puts tables rotated to single column width. For tables rotated to double column width, use \verb+\begin{sidewaystable*}+ \verb+...+ \verb+\end{sidewaystable*}+.
-
-\begin{sidewaystable}
-\caption{Tables which are too long to fit, should be written using the ``sidewaystable'' environment as shown here}\label{tab3}
-\begin{tabular*}{\textheight}{@{\extracolsep\fill}lcccccc}
-\toprule%
-& \multicolumn{3}{@{}c@{}}{Element 1\footnotemark[1]}& \multicolumn{3}{@{}c@{}}{Element\footnotemark[2]} \\\cmidrule{2-4}\cmidrule{5-7}%
-Projectile & Energy	& $\sigma_{calc}$ & $\sigma_{expt}$ & Energy & $\sigma_{calc}$ & $\sigma_{expt}$ \\
-\midrule
-Element 3 & 990 A & 1168 & $1547\pm12$ & 780 A & 1166 & $1239\pm100$ \\
-Element 4 & 500 A & 961  & $922\pm10$  & 900 A & 1268 & $1092\pm40$ \\
-Element 5 & 990 A & 1168 & $1547\pm12$ & 780 A & 1166 & $1239\pm100$ \\
-Element 6 & 500 A & 961  & $922\pm10$  & 900 A & 1268 & $1092\pm40$ \\
-\botrule
-\end{tabular*}
-\footnotetext{Note: This is an example of table footnote this is an example of table footnote this is an example of table footnote this is an example of~table footnote this is an example of table footnote.}
-\footnotetext[1]{This is an example of table footnote.}
-\end{sidewaystable}
-
-\section{Figures}\label{sec6}
-
-As per the \LaTeX\ standards you need to use eps images for \LaTeX\ compilation and \verb+pdf/jpg/png+ images for \verb+PDFLaTeX+ compilation. This is one of the major difference between \LaTeX\ and \verb+PDFLaTeX+. Each image should be from a single input .eps/vector image file. Avoid using subfigures. The command for inserting images for \LaTeX\ and \verb+PDFLaTeX+ can be generalized. The package used to insert images in \verb+LaTeX/PDFLaTeX+ is the graphicx package. Figures can be inserted via the normal figure environment as shown in the below example:
-
-%%=============================================%%
-%% For presentation purpose, we have included  %%
-%% \bigskip command. please ignore this.       %%
-%%=============================================%%
-\bigskip
-\begin{verbatim}
-\begin{figure}[<placement-specifier>]
-\centering
-\includegraphics{<eps-file>}
-\caption{<figure-caption>}\label{<figure-label>}
-\end{figure}
-\end{verbatim}
-\bigskip
-%%=============================================%%
-%% For presentation purpose, we have included  %%
-%% \bigskip command. please ignore this.       %%
-%%=============================================%%
-
-\begin{figure}[h]%
-\centering
-\includegraphics[width=0.9\textwidth]{fig.eps}
-\caption{This is a widefig. This is an example of long caption this is an example of long caption  this is an example of long caption this is an example of long caption}\label{fig1}
-\end{figure}
-
-In case of double column layout, the above format puts figure captions/images to single column width. To get spanned images, we need to provide \verb+\begin{figure*}+ \verb+...+ \verb+\end{figure*}+.
-
-For sample purpose, we have included the width of images in the optional argument of \verb+\includegraphics+ tag. Please ignore this. 
-
-\section{Algorithms, Program codes and Listings}\label{sec7}
-
-Packages \verb+algorithm+, \verb+algorithmicx+ and \verb+algpseudocode+ are used for setting algorithms in \LaTeX\ using the format:
-
-%%=============================================%%
-%% For presentation purpose, we have included  %%
-%% \bigskip command. please ignore this.       %%
-%%=============================================%%
-\bigskip
-\begin{verbatim}
-\begin{algorithm}
-\caption{<alg-caption>}\label{<alg-label>}
-\begin{algorithmic}[1]
-. . .
-\end{algorithmic}
-\end{algorithm}
-\end{verbatim}
-\bigskip
-%%=============================================%%
-%% For presentation purpose, we have included  %%
-%% \bigskip command. please ignore this.       %%
-%%=============================================%%
-
-You may refer above listed package documentations for more details before setting \verb+algorithm+ environment. For program codes, the ``verbatim'' package is required and the command to be used is \verb+\begin{verbatim}+ \verb+...+ \verb+\end{verbatim}+. 
-
-Similarly, for \verb+listings+, use the \verb+listings+ package. \verb+\begin{lstlisting}+ \verb+...+ \verb+\end{lstlisting}+ is used to set environments similar to \verb+verbatim+ environment. Refer to the \verb+lstlisting+ package documentation for more details.
-
-A fast exponentiation procedure:
-
-\lstset{texcl=true,basicstyle=\small\sf,commentstyle=\small\rm,mathescape=true,escapeinside={(*}{*)}}
-\begin{lstlisting}
-begin
-  for $i:=1$ to $10$ step $1$ do
-      expt($2,i$);  
-      newline() od                (*\textrm{Comments will be set flush to the right margin}*)
-where
-proc expt($x,n$) $\equiv$
-  $z:=1$;
-  do if $n=0$ then exit fi;
-     do if odd($n$) then exit fi;                 
-        comment: (*\textrm{This is a comment statement;}*)
-        $n:=n/2$; $x:=x*x$ od;
-     { $n>0$ };
-     $n:=n-1$; $z:=z*x$ od;
-  print($z$). 
-end
-\end{lstlisting}
-
-\begin{algorithm}
-\caption{Calculate $y = x^n$}\label{algo1}
-\begin{algorithmic}[1]
-\Require $n \geq 0 \vee x \neq 0$
-\Ensure $y = x^n$ 
-\State $y \Leftarrow 1$
-\If{$n < 0$}\label{algln2}
-        \State $X \Leftarrow 1 / x$
-        \State $N \Leftarrow -n$
-\Else
-        \State $X \Leftarrow x$
-        \State $N \Leftarrow n$
-\EndIf
-\While{$N \neq 0$}
-        \If{$N$ is even}
-            \State $X \Leftarrow X \times X$
-            \State $N \Leftarrow N / 2$
-        \Else[$N$ is odd]
-            \State $y \Leftarrow y \times X$
-            \State $N \Leftarrow N - 1$
-        \EndIf
-\EndWhile
-\end{algorithmic}
-\end{algorithm}
-
-%%=============================================%%
-%% For presentation purpose, we have included  %%
-%% \bigskip command. please ignore this.       %%
-%%=============================================%%
-\bigskip
-\begin{minipage}{\hsize}%
-\lstset{frame=single,framexleftmargin=-1pt,framexrightmargin=-17pt,framesep=12pt,linewidth=0.98\textwidth,language=pascal}% Set your language (you can change the language for each code-block optionally)
-%%% Start your code-block
-\begin{lstlisting}
-for i:=maxint to 0 do
-begin
-{ do nothing }
-end;
-Write('Case insensitive ');
-Write('Pascal keywords.');
-\end{lstlisting}
-\end{minipage}
-
-\section{Cross referencing}\label{sec8}
-
-Environments such as figure, table, equation and align can have a label
-declared via the \verb+\label{#label}+ command. For figures and table
-environments use the \verb+\label{}+ command inside or just
-below the \verb+\caption{}+ command. You can then use the
-\verb+\ref{#label}+ command to cross-reference them. As an example, consider
-the label declared for Figure~\ref{fig1} which is
-\verb+\label{fig1}+. To cross-reference it, use the command 
-\verb+Figure \ref{fig1}+, for which it comes up as
-``Figure~\ref{fig1}''. 
-
-To reference line numbers in an algorithm, consider the label declared for the line number 2 of Algorithm~\ref{algo1} is \verb+\label{algln2}+. To cross-reference it, use the command \verb+\ref{algln2}+ for which it comes up as line~\ref{algln2} of Algorithm~\ref{algo1}.
-
-\subsection{Details on reference citations}\label{subsec7}
-
-Standard \LaTeX\ permits only numerical citations. To support both numerical and author-year citations this template uses \verb+natbib+ \LaTeX\ package. For style guidance please refer to the template user manual.
-
-Here is an example for \verb+\cite{...}+: \cite{bib1}. Another example for \verb+\citep{...}+: \citep{bib2}. For author-year citation mode, \verb+\cite{...}+ prints Jones et al. (1990) and \verb+\citep{...}+ prints (Jones et al., 1990).
-
-All cited bib entries are printed at the end of this article: \cite{bib3}, \cite{bib4}, \cite{bib5}, \cite{bib6}, \cite{bib7}, \cite{bib8}, \cite{bib9}, \cite{bib10}, \cite{bib11}, \cite{bib12} and \cite{bib13}.
-
-\section{Examples for theorem like environments}\label{sec10}
-
-For theorem like environments, we require \verb+amsthm+ package. There are three types of predefined theorem styles exists---\verb+thmstyleone+, \verb+thmstyletwo+ and \verb+thmstylethree+ 
-
-%%=============================================%%
-%% For presentation purpose, we have included  %%
-%% \bigskip command. please ignore this.       %%
-%%=============================================%%
-\bigskip
-\begin{tabular}{|l|p{19pc}|}
-\hline
-\verb+thmstyleone+ & Numbered, theorem head in bold font and theorem text in italic style \\\hline
-\verb+thmstyletwo+ & Numbered, theorem head in roman font and theorem text in italic style \\\hline
-\verb+thmstylethree+ & Numbered, theorem head in bold font and theorem text in roman style \\\hline
-\end{tabular}
-\bigskip
-%%=============================================%%
-%% For presentation purpose, we have included  %%
-%% \bigskip command. please ignore this.       %%
-%%=============================================%%
-
-For mathematics journals, theorem styles can be included as shown in the following examples:
-
-\begin{theorem}[Theorem subhead]\label{thm1}
-Example theorem text. Example theorem text. Example theorem text. Example theorem text. Example theorem text. 
-Example theorem text. Example theorem text. Example theorem text. Example theorem text. Example theorem text. 
-Example theorem text. 
-\end{theorem}
-
-Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text.
-
-\begin{proposition}
-Example proposition text. Example proposition text. Example proposition text. Example proposition text. Example proposition text. 
-Example proposition text. Example proposition text. Example proposition text. Example proposition text. Example proposition text. 
-\end{proposition}
-
-Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text.
-
-\begin{example}
-Phasellus adipiscing semper elit. Proin fermentum massa
-ac quam. Sed diam turpis, molestie vitae, placerat a, molestie nec, leo. Maecenas lacinia. Nam ipsum ligula, eleifend
-at, accumsan nec, suscipit a, ipsum. Morbi blandit ligula feugiat magna. Nunc eleifend consequat lorem. 
-\end{example}
-
-Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text.
-
-\begin{remark}
-Phasellus adipiscing semper elit. Proin fermentum massa
-ac quam. Sed diam turpis, molestie vitae, placerat a, molestie nec, leo. Maecenas lacinia. Nam ipsum ligula, eleifend
-at, accumsan nec, suscipit a, ipsum. Morbi blandit ligula feugiat magna. Nunc eleifend consequat lorem. 
-\end{remark}
-
-Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text.
-
-\begin{definition}[Definition sub head]
-Example definition text. Example definition text. Example definition text. Example definition text. Example definition text. Example definition text. Example definition text. Example definition text. 
-\end{definition}
-
-Additionally a predefined ``proof'' environment is available: \verb+\begin{proof}+ \verb+...+ \verb+\end{proof}+. This prints a ``Proof'' head in italic font style and the ``body text'' in roman font style with an open square at the end of each proof environment. 
-
-\begin{proof}
-Example for proof text. Example for proof text. Example for proof text. Example for proof text. Example for proof text. Example for proof text. Example for proof text. Example for proof text. Example for proof text. Example for proof text. 
-\end{proof}
-
-Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text. Sample body text.
-
-\begin{proof}[Proof of Theorem~{\upshape\ref{thm1}}]
-Example for proof text. Example for proof text. Example for proof text. Example for proof text. Example for proof text. Example for proof text. Example for proof text. Example for proof text. Example for proof text. Example for proof text. 
-\end{proof}
-
-\noindent
-For a quote environment, use \verb+\begin{quote}...\end{quote}+
-\begin{quote}
-Quoted text example. Aliquam porttitor quam a lacus. Praesent vel arcu ut tortor cursus volutpat. In vitae pede quis diam bibendum placerat. Fusce elementum
-convallis neque. Sed dolor orci, scelerisque ac, dapibus nec, ultricies ut, mi. Duis nec dui quis leo sagittis commodo.
-\end{quote}
-
-Sample body text. Sample body text. Sample body text. Sample body text. Sample body text (refer Figure~\ref{fig1}). Sample body text. Sample body text. Sample body text (refer Table~\ref{tab3}). 
-
-\section{Methods}\label{sec11}
-
-Topical subheadings are allowed. Authors must ensure that their Methods section includes adequate experimental and characterization data necessary for others in the field to reproduce their work. Authors are encouraged to include RIIDs where appropriate. 
-
-\textbf{Ethical approval declarations} (only required where applicable) Any article reporting experiment/s carried out on (i)~live vertebrate (or higher invertebrates), (ii)~humans or (iii)~human samples must include an unambiguous statement within the methods section that meets the following requirements: 
-
-\begin{enumerate}[1.]
-\item Approval: a statement which confirms that all experimental protocols were approved by a named institutional and/or licensing committee. Please identify the approving body in the methods section
-
-\item Accordance: a statement explicitly saying that the methods were carried out in accordance with the relevant guidelines and regulations
-
-\item Informed consent (for experiments involving humans or human tissue samples): include a statement confirming that informed consent was obtained from all participants and/or their legal guardian/s
-\end{enumerate}
-
-If your manuscript includes potentially identifying patient/participant information, or if it describes human transplantation research, or if it reports results of a clinical trial then  additional information will be required. Please visit (\url{https://www.nature.com/nature-research/editorial-policies}) for Nature Portfolio journals, (\url{https://www.springer.com/gp/authors-editors/journal-author/journal-author-helpdesk/publishing-ethics/14214}) for Springer Nature journals, or (\url{https://www.biomedcentral.com/getpublished/editorial-policies\#ethics+and+consent}) for BMC.
-
-\section{Discussion}\label{sec12}
-
-Discussions should be brief and focused. In some disciplines use of Discussion or `Conclusion' is interchangeable. It is not mandatory to use both. Some journals prefer a section `Results and Discussion' followed by a section `Conclusion'. Please refer to Journal-level guidance for any specific requirements. 
-
-\section{Conclusion}\label{sec13}
-
-Conclusions may be used to restate your hypothesis or research question, restate your major findings, explain the relevance and the added value of your work, highlight any limitations of your study, describe future directions for research and recommendations. 
-
-In some disciplines use of Discussion or 'Conclusion' is interchangeable. It is not mandatory to use both. Please refer to Journal-level guidance for any specific requirements. 
-
-\backmatter
-
-\bmhead{Supplementary information}
-
-If your article has accompanying supplementary file/s please state so here. 
-
-Authors reporting data from electrophoretic gels and blots should supply the full unprocessed scans for key as part of their Supplementary information. This may be requested by the editorial team/s if it is missing.
-
-Please refer to Journal-level guidance for any specific requirements.
-
-\bmhead{Acknowledgments}
-
-Acknowledgments are not compulsory. Where included they should be brief. Grant or contribution numbers may be acknowledged.
-
-Please refer to Journal-level guidance for any specific requirements.
-
-\section*{Declarations}
-
-Some journals require declarations to be submitted in a standardised format. Please check the Instructions for Authors of the journal to which you are submitting to see if you need to complete this section. If yes, your manuscript must contain the following sections under the heading `Declarations':
-
+\subsection{Augmentation Results}\label{sectraining_augmentation}
+To evaluate the benefits of various augmentation techiques, the model was trained without any initial augmentation, with a balanced dataset, and then with an additional 2,000 sames generated for each class.  Each of these variations were performed with and without continuous data augmentation during the traing itself.  The confusion matrix results are shown in figure \ref{fig:2x3_original}.   For these results, we additionally show the precision, recall, and F1 score for the malignant class.  The focus on the malignant class is due to
 \begin{itemize}
-\item Funding
-\item Conflict of interest/Competing interests (check journal-specific guidelines for which heading to use)
-\item Ethics approval 
-\item Consent to participate
-\item Consent for publication
-\item Availability of data and materials
-\item Code availability 
-\item Authors' contributions
+\item it being particularly important to have good recall on the malignant class due to the real-world implications of failing to recognize a malignant tumor and
+\item our use later of this class to mimic very limited data representation for certain classes.
 \end{itemize}
+The results are summarized in Table \ref{dataaccuracies}.
 
-\noindent
-If any of the sections are not relevant to your manuscript, please include the heading and write `Not applicable' for that section. 
+When training with the small, original dataset or with that dataset augmented to be balanced, we see significant improvement, in both accuracy and `malignant' class recall, by using the continuous augmentation technique.  This trend is not maintained with the larger, augmented dataset.  With the larger, augmented dataset we see a small reduction in accuracy using continuous augmentation.   
 
-%%===================================================%%
-%% For presentation purpose, we have included        %%
-%% \bigskip command. please ignore this.             %%
-%%===================================================%%
-\bigskip
-\begin{flushleft}%
-Editorial Policies for:
+Also of note, counter-intuitively, the balanced dataset without continuous augmentation classifies most samples as `benign', the most prevalent of the sample classes in the original dataset.  Further work would be needed to explain this adequately.  It could imply an instability in our model such that the optimization is finding a degenerate solution.  It could also suggest that the augmented data is not adequately representing the original data.  However, without continuous augmentation, starting with the smaller datasets produces very poor (unusable) trained models regardless of balancing.
 
-\bigskip\noindent
-Springer journals and proceedings: \url{https://www.springer.com/gp/editorial-policies}
+\begin{figure}[!htbp]
+    \centering
 
-\bigskip\noindent
-Nature Portfolio journals: \url{https://www.nature.com/nature-research/editorial-policies}
+    \includegraphics[width=\textwidth]{summary/2x3_original.png}
 
-\bigskip\noindent
-\textit{Scientific Reports}: \url{https://www.nature.com/srep/journal-policies/editorial-policies}
+    \caption{A set of confusion matrices based on various hyperparameters.  On the left are confusion matrices from training without continuous augmentation, while on he right are confusion matrices with conintuous augmentation.  The first row used the original dataset without any balancing.  The second row used a balanced dataset.  The third row augments the balanced dataset by generating an addition 2,000 samples per class.}
+    \label{fig:2x3_original}
+\end{figure}
 
-\bigskip\noindent
-BMC journals: \url{https://www.biomedcentral.com/getpublished/editorial-policies}
-\end{flushleft}
 
-\begin{appendices}
 
-\section{Section title of first appendix}\label{secA1}
+\begin{table}[h]
+\caption{Summary of the accuracies achieved on the test sets for varioius training approaches.}\label{dataaccuraces}
+\begin{tabular}{@{}lllll@{}}%
+\toprule
+Continuous Aug. & Balanced & \# for Expansion Aug.  & Accuracy & `malignant' Recall\\
+\midrule
+False & False & 0 & 56\% & .40 \\
+True & False & 0 & 76\% & .70 \\
+False & True & 0 & 55\% & .12 \\
+True & True & 0 & 85\% & .84 \\
+False & True & 2,000 & 91\% & .91 \\
+True & True & 2,000 & 87\% & .86 \\
+\botrule
+\end{tabular}
+\end{table}
 
-An appendix contains supplementary information that is not an essential part of the text itself but which may be helpful in providing a more comprehensive understanding of the research problem or it is information that is too cumbersome to be included in the body of the paper.
+
+
+\subsection{Mimicking Reduced Class Representations}\label{sectraining_reductions}
+To evaluate the effect of limited class represetnation in the dataset available for training, we artificially reduce the `malignant' class after performing the train/test split.  Note that this is not entirely representative of the real-world case.  Our test set still contains the 20\% representation based on the original dataset.  This is done to preserve consistency among all the runs of having the exact same test set.  Further comparisons could be done by reducing the datsaet prior to train/test in future work.
+
+\begin{figure}[!htbp]
+    \centering
+
+    \resizebox{!}{0.8\textheight}{\includegraphics[width=\textwidth]{summary/2x5_reductions.png}}
+
+    \caption{A set of confusion matrices based the percentage of training `malignant' class examples which were removed before augmentation and training.  On the left are confusion matrices from training without continuous augmentation, while on he right are confusion matrices with continuous augmentation.  The first row represents no reduction and is equivalent to the last rown seen in Figure \ref{fig:2x3_original}.  The second through fifth represent reductions in the `malignant' training set by 50\%, 65\%, 80\%, and 95\%, respectively.}
+    \label{fig:2x5_reductions}
+\end{figure}
+
+\begin{table}[h]
+\caption{Summary of the accuracies achieved on the test sets for varioius training approaches.}\label{datareductions}
+\begin{tabular}{@{}lllll@{}}%
+\toprule
+Continuous Aug. & \# for Expansion Aug.  & \% Reduced&  Accuracy & `malignant' Recall\\
+\midrule
+False & 2,000 & 0\%& 91\% & .91 \\
+True & 2,000 & 0\%& 87\% & .86 \\
+False & 2,000 & 50\%& 89\% & .81 \\
+True & 2,000 & 50\%& 90\% & .86 \\
+False & 2,000 & 65\%& 75\% & .42 \\
+True & 2,000 &65\%& 85\% & .63 \\
+False & 2,000 & 80\%& 77\% & .42 \\
+True & 2,000 & 80\%& 85\% & .60 \\
+False & 2,000 & 95\%& 54\% & .00 \\
+True & 2,000 &95\%& 65\% & .12 \\
+\botrule
+\end{tabular}
+\end{table}
+
+These results may be more easily observed in Figure \ref{fig:reduction_performance} where four metrics are plotted as a function of the reduction rate.  The dashed line indicates the model in which continuous augmentation was not used, and the solid line represents the model in which it was used.  With more than 50 percent reduction we see significant drop-off in the model performance.  (Note that while the precision for the `malignant' class remains high for many of these models, the more critical measures of recall and F1 decline drastically.) 
+
+\begin{figure}[!htbp]
+    \centering
+
+    \includegraphics[width=\textwidth]{summary/reduction_performance.png}
+
+    \caption{Various model performance as a function of reduction rate where reduction rate defines how much of the `malignant' class's training set is hidden before augmentation and training.}
+    \label{fig:reduction_performance}
+\end{figure}
+
+
+\section{Explainability}\label{sec_explain}
+
+
+\begin{figure}[!htbp]
+    \centering
+
+    \includegraphics[width=\textwidth]{summary/proportion_mal_and_benign.png}
+
+    \caption{Each plot shows the proportion of pixels contributing to a prediction.  The x-axis shows the proportion inside the tumor mask positively contributing to the prediction, while the y-axis shows the proportion of pixels outside tumor mask positively contributing.  On the left chart, we consider contriubtions towards the correct label, and on the right, we consider contributions towards the wrong label.}
+    \label{fig:proportion}
+\end{figure}
+
+
+\section{Conclusions}\label{sec_conclusion}
+
+\section{Future Work}\label{sec_future}
+
+In the present work, the LIME model was used to generate explanatory masks.  However, other techniques like SHAP or Layer-wise Relevance BackPropagation (LRP) might provide more informative explanations \cite{SALEEM2022165}.  Specifically, having techniques to provide a quantative value of the impact of individual pixels would be more informative.  We plan to use such values to determine the sum of pixels inside the masked areas versus outside.  Similarly, one would reasonably expect the pixels near the mask to be valuable to the classification, and therefore we plan to weight pixels by proximity to the masks for analysis, not just inside or outside the mask, as was done in this study.
+
+%\begin{appendices}
+
+%\section{Section title of first appendix}\label{secA1}
+
+
 
 %%=============================================%%
 %% For submissions to Nature Portfolio Journals %%
@@ -770,7 +368,7 @@ An appendix contains supplementary information that is not an essential part of 
 %% clutter, break up or be distracting to the text. Appendices can consist of sections, figures, 
 %% tables and equations etc.
 
-\end{appendices}
+%\end{appendices}
 
 %%===========================================================================================%%
 %% If you are submitting to one of the Nature Portfolio journals, using the eJP submission   %%
