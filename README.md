@@ -21,27 +21,28 @@ Stores some generic data but the primary data should be pulled from Kaggle.
 
 [1] Sarvamangala, D.R., Kulkarni, R.V.: Convolutional neural networks in medical
 image understanding: a survey. Evolutionary Intelligence (2022) https://doi.org/
-10.1007/s12065-020-00540-3
+10.1007/s12065-020-00540-3 \
 [2] Arevalo, J., Gonz´alez, F.A., Ramos-Poll´an, R., Oliveira, J.L., Guevara Lopez,
 M.A.: Representation learning for mammography mass lesion classification with
 convolutional neural networks. Computer Methods and Programs in Biomedicine
-127, 248–257 (2016) https://doi.org/10.1016/j.cmpb.2015.12.014
+127, 248–257 (2016) https://doi.org/10.1016/j.cmpb.2015.12.014 \
 [3] United States Cancer Statistics: Highlights from 2019 Incidence. https://www.cdc.
 gov/cancer/uscs/about/data-briefs/no29-USCS-highlights-2019-incidence.htm.
 Centers for Disease Control and Prevention, US Department of Health and
-Human Services (2022)
+Human Services (2022) \
 [4] W, G.A.-D.: Dataset of breast ultrasound images. Data in Brief,. https://www.
-kaggle.com/datasets/aryashah2k/breast-ultrasound-images-dataset (2018)
+kaggle.com/datasets/aryashah2k/breast-ultrasound-images-dataset (2018) \
 [5] Huang, C., Li, Y., Loy, C.C., Tang, X.: Learning deep representation for imbalanced
 classification. In: Proceedings of the IEEE Conference on Computer Vision and
-Pattern Recognition (CVPR) (2016)
+Pattern Recognition (CVPR) (2016) \
 [6] Documentation, T.: ImageDataGenerator Class. Accessed on: November
 10, 2023. https://www.tensorflow.org/api docs/python/tf/keras/preprocessing/
 image/ImageDataGenerator
-12
+12 \
 [7] Tan, M., Le, Q.V.: Efficientnet: Rethinking model scaling for convolutional neural
-networks. CoRR (2019)
+networks. CoRR (2019) \
 [8] Colaboratory. https://colab.research.google.com. Google’s free, Jupyter-based
-notebook environment
+notebook environment\
 [9] Saleem, R., Yuan, B., Kurugollu, F., Anjum, A., Liu, L.: Explaining deep neural
-networks: A survey on the global interpretation methods. Neurocom
+networks: A survey on the global interpretation methods. Neurocomputing 513,
+165–180 (2022) https://doi.org/10.1016/j.neucom.2022.09.129
