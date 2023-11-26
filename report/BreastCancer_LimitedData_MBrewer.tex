@@ -154,7 +154,7 @@ The ability to correctly interpret medical images is critical in diagnosis and p
 \end{figure}
 
 
-Because of the availabity of breast cancer image data, in this study we use that as a proxy for other rare diseases, specifically to study how the quantity of available training samples impacts our model.  We note there are concerns with this approach.  It is not immediately evident this breast cancer study will fairly mimick the rare diseases for which it serves as proxy.  The base models used for training may have already been exposed to Breast Cancer images, for example, or the more rare cancers could have entirely different features or heterogenaties.   However, with the breast dataset, we can restrict the data of an individual class artificially, and therefore see how the model is impacted by various levels of that restriction.
+Because of the availabity of breast cancer image data, in this study we use that as a proxy for other rare diseases, specifically to study how the quantity of available training samples impacts our model.  We note there are concerns with this approach.  It is not immediately evident this breast cancer study will fairly mimick the rare diseases for which it serves as proxy.  The base models used for training may have already been exposed to Breast Cancer images, for example, or the more rare cancers could have entirely different features or heterogeneities.   However, with the breast dataset, we can restrict the data of an individual class artificially, and therefore see how the model is impacted by various levels of that restriction.
 
 
 \section{Training Data and Augmentation}\label{sec_data}
@@ -195,7 +195,7 @@ As explained by Huang {\it et al.} \cite{Huang_2016_CVPR}, there are several tec
 \lstset{texcl=true,basicstyle=\small\sf,commentstyle=\small\rm,mathescape=true,escapeinside={(*}{*)}}
 \begin{lstlisting}
 
-    image_generator = ImageDataGenerator(rescale=rescale,
+    image_generator = ImageDataGenerator(rescale=1.0,
                                          zoom_range=.2,
                                          horizontal_flip=True,
                                          rotation_range=40,
@@ -214,7 +214,7 @@ As explained by Huang {\it et al.} \cite{Huang_2016_CVPR}, there are several tec
 Using the same technique as above, we can utilize the same ImageDataGenerator to generate additional samples of all classes.  We utilize this approach to, for example, generate additional images beyond the number needed balance.  Note that both of these method which augment the data prior to training will increase the epoch size during training.   In later sections, this technique is labeled ``expansion augmentation", and the number of images reported is how many additional images were added to each class beyond the 353 used to balance. 
 
 \subsection{Continuous Augmentation to Expand Diversity during Training}
-We can additionally expand the sample diversity during training.  Keras provides CNN layers which can, during training, modify the input image with techniques like rotation or contrast adjustment.  However, adding these layers adds complexity relative to continue relying on the ImageDataGenerator to provide additional diversity.  Therefore, for training-time augmentation, we rely on an ImageDataGenerator. In later sections, this technique is labeled ``continuous augmentation".  With this continuous augmentation, images will be modified differently for each epoch.  That is, expansion augmentation will generate large image sets for a single epoch, and continuous augmentation will add diversity each iteration through an epoch.  
+We can additionally expand the sample diversity during training.  Keras provides CNN layers which can, during training, modify the input image with techniques like rotation or contrast adjustment.  However, these layers would also add complexity to model, with their needing to be removed before the model is used for inference.  Continuing to rely on the ImageDataGenerator to provide additional diversity allows a simpler implementation.  Therefore, for training-time augmentation, we rely on an ImageDataGenerator. In later sections, this technique is labeled ``continuous augmentation".  With this continuous augmentation, images will be modified differently for each epoch.  That is, expansion augmentation will generate large image sets for a single epoch, and continuous augmentation will add diversity each iteration through an epoch.  
 
 \section{Model}\label{sec_model}
 The base model, defined in code as base\_model, was constructed from EfficientNetB2 \cite{effnet}.  This base model was then enhanced with additional layers to make the model appropriate for our Breast Cancer classification use-case.  The model is shown below
@@ -330,18 +330,33 @@ These results may be more easily observed in Figure \ref{fig:reduction_performan
 
 
 \section{Explainability}\label{sec_explain}
-
+For examples of `benign' and `malignant', in particular, we now explore the pixels on which the model is focusing.  Because this dataset has the tumor mask, for applications like segmentation, in this section we utilize those masks to determine if the model is identifying the tumor types by markers inside the tumor or outside the tumore.  While it isn't strictly necessary, that the pixels inside the tumor are the most indicitive of the tumor type, that is the presumption we use here.  Further informaton from medical specialists could provide more insight on this presumption.  
+The LIME model is utilized to identify whether the pixels are positively impacting the correct tumor type classifications.  The LIME model produces its own mask, with positive values indiciating positive contribution towards a classification.  Therefore, we can generate multiple masks, one per classification type (malignant, benign, or normal), in additional to our existing tumor mask annotated in our original dataset.  
+We now sample our test datsaet and generate these LIME masks.  We can calculate the proportion of pixels inside or outside of the masked tumor area that are positively contributing towards, for example, the 'bengin' classification for a sample with truth label 'benign'.  For that same sample, we can calculate the proportions contributing towards a 'malignant' classification.  Figure \ref{fig:proportion} summarizes these results for 4 different values of our malignant reduction values discussed in Section \ref{sectraining_reductions}.  In these plots, the `x' marks represent samples with true values of `malignant', and the large 'X' signifies the mean of that group.  Similarly, the dots represent `benign'.  
+Of most significant note, the mean of the `malignant' class lowers for `malignant' classification as the reduction ratio increases.  This means that fewer pixels are contributing correctly to the malignant class. 
 
 \begin{figure}[!htbp]
     \centering
 
-    \includegraphics[width=\textwidth]{summary/proportion_mal_and_benign.png}
+    \resizebox{!}{0.8\textheight}{\includegraphics[width=\textwidth]{summary/proportion_mal_and_benign_all.png}}
+    %\includegraphics[width=\textwidth]{summary/proportion_mal_and_benign_all.png}
 
     \caption{Each plot shows the proportion of pixels contributing to a prediction.  The x-axis shows the proportion inside the tumor mask positively contributing to the prediction, while the y-axis shows the proportion of pixels outside tumor mask positively contributing.  On the left chart, we consider contriubtions towards the correct label, and on the right, we consider contributions towards the wrong label.}
     \label{fig:proportion}
 \end{figure}
 
 
+
+To summarize the behavior of the model for pixels within the tumor mask, we plot the ratio of pixels positively contributing to the correct classification as a function of the `malignant reduction rate' in Figure \ref{fig:mal_ben_line}.
+\begin{figure}[!htbp]
+    \centering
+
+    \resizebox{!}{\textwidth}{\includegraphics[width=\textwidth]{summary/proportion_mal_and_benign_line_plot.png}}
+    %\includegraphics[width=\textwidth]{summary/proportion_mal_and_benign_all.png}
+
+    \caption{Ratio of pixels positively contributing to the correct label within the tumor mask}
+    \label{fig:mal_ben_line}
+\end{figure}
 \section{Conclusions}\label{sec_conclusion}
 
 \section{Future Work}\label{sec_future}

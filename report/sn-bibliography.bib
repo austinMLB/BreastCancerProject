@@ -10,9 +10,17 @@
 %% Journal article
 @article{effnet,
   author		= "M. Tan and Q. V. Le",
-  title			= "EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks,",
+  title			= "EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks",
   journal		= "CoRR",
   year			= "2019"
+}
+%% Journal article
+@article{2022_survey,
+  author		= "Sarvamangala, D. R. and Kulkarni, Raghavendra V.",
+  title			= "Convolutional neural networks in medical image understanding: a survey",
+  journal		= "Evolutionary Intelligence",
+  year			= "2022",
+  doi			= "10.1007/s12065-020-00540-3"
 }
 
 @misc{colab,
@@ -21,6 +29,14 @@
   note = {Google's free, Jupyter-based notebook environment},
 }
 
+@misc{cdc,
+  title = {United States Cancer Statistics: Highlights from 2019 Incidence},
+  journal = {USCS Data Brief},
+  issue = {29},
+  year = {2022},
+  howpublished = {\url{https://www.cdc.gov/cancer/uscs/about/data-briefs/no29-USCS-highlights-2019-incidence.htm}},
+  note = {Centers for Disease Control and Prevention, US Department of Health and Human Services},
+}
 @online{tensorflow-imagedatagenerator,
   author = {TensorFlow Documentation},
   title = {ImageDataGenerator Class},
@@ -35,6 +51,28 @@ booktitle = {Proceedings of the IEEE Conference on Computer Vision and Pattern R
 month = {June},
 year = {2016}
 }
+@article{AREVALO2016248,
+title = {Representation learning for mammography mass lesion classification with convolutional neural networks},
+journal = {Computer Methods and Programs in Biomedicine},
+volume = {127},
+pages = {248-257},
+year = {2016},
+issn = {0169-2607},
+doi = {https://doi.org/10.1016/j.cmpb.2015.12.014},
+url = {https://www.sciencedirect.com/science/article/pii/S0169260715300110},
+author = {John Arevalo and Fabio A. González and Raúl Ramos-Pollán and Jose L. Oliveira and Miguel Angel {Guevara Lopez}},
+keywords = {Breast cancer, Feature learning, Convolutional neural networks, Computer-aided diagnosis, Mammography},
+abstract = {Background and objective
+The automatic classification of breast imaging lesions is currently an unsolved problem. This paper describes an innovative representation learning framework for breast cancer diagnosis in mammography that integrates deep learning techniques to automatically learn discriminative features avoiding the design of specific hand-crafted image-based feature detectors.
+Methods
+A new biopsy proven benchmarking dataset was built from 344 breast cancer patients’ cases containing a total of 736 film mammography (mediolateral oblique and craniocaudal) views, representative of manually segmented lesions associated with masses: 426 benign lesions and 310 malignant lesions. The developed method comprises two main stages: (i) preprocessing to enhance image details and (ii) supervised training for learning both the features and the breast imaging lesions classifier. In contrast to previous works, we adopt a hybrid approach where convolutional neural networks are used to learn the representation in a supervised way instead of designing particular descriptors to explain the content of mammography images.
+Results
+Experimental results using the developed benchmarking breast cancer dataset demonstrated that our method exhibits significant improved performance when compared to state-of-the-art image descriptors, such as histogram of oriented gradients (HOG) and histogram of the gradient divergence (HGD), increasing the performance from 0.787 to 0.822 in terms of the area under the ROC curve (AUC). Interestingly, this model also outperforms a set of hand-crafted features that take advantage of additional information from segmentation by the radiologist. Finally, the combination of both representations, learned and hand-crafted, resulted in the best descriptor for mass lesion classification, obtaining 0.826 in the AUC score.
+Conclusions
+A novel deep learning based framework to automatically address classification of breast mass lesions in mammography was developed.}
+}
+
+
 @article{SALEEM2022165,
 title = {Explaining deep neural networks: A survey on the global interpretation methods},
 journal = {Neurocomputing},
@@ -44,9 +82,7 @@ year = {2022},
 issn = {0925-2312},
 doi = {https://doi.org/10.1016/j.neucom.2022.09.129},
 url = {https://www.sciencedirect.com/science/article/pii/S0925231222012218},
-author = {Rabia Saleem and Bo Yuan and Fatih Kurugollu and Ashiq Anjum and Lu Liu},
-keywords = {Artificial intelligence, Deep neural networks, Black box Models, Explainable artificial intelligence, Global interpretation},
-abstract = {A substantial amount of research has been carried out in Explainable Artificial Intelligence (XAI) models, especially in those which explain the deep architectures of neural networks. A number of XAI approaches have been proposed to achieve trust in Artificial Intelligence (AI) models as well as provide explainability of specific decisions made within these models. Among these approaches, global interpretation methods have emerged as the prominent methods of explainability because they have the strength to explain every feature and the structure of the model. This survey attempts to provide a comprehensive review of global interpretation methods that completely explain the behaviour of the AI models. We present a taxonomy of the available global interpretations models and systematically highlight the critical features and algorithms that differentiate them from local as well as hybrid models of explainability. Through examples and case studies from the literature, we evaluate the strengths and weaknesses of the global interpretation models and assess challenges when these methods are put into practice. We conclude the paper by providing the future directions of research in how the existing challenges in global interpretation methods could be addressed and what values and opportunities could be realized by the resolution of these challenges.}
+author = {Rabia Saleem and Bo Yuan and Fatih Kurugollu and Ashiq Anjum and Lu Liu}
 }
 %%%%%% UNNEEDED
 %% Journal article
