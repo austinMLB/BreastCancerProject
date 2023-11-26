@@ -358,7 +358,7 @@ To summarize the behavior of the model for pixels within the tumor mask, we plot
     \label{fig:mal_ben_line}
 \end{figure}
 \section{Conclusions}\label{sec_conclusion}
-
+In this paper, we demonstrate that data augmentation techniques can significantly improve the performance of the EfficientNetB2 when classifying tumor types from an initial dataset of a few hundred samples.  If we are concerned primarily with one specific class which is severely under-represented in our dataset, data augmentation was not sufficient for maintaining the model's accuracy.  Further work would be required to develop additional techniques to both account for these very limited datasets and to explain the model's behavior for these under-represented classes.  
 \section{Future Work}\label{sec_future}
 
 In the present work, the LIME model was used to generate explanatory masks.  However, other techniques like SHAP or Layer-wise Relevance BackPropagation (LRP) might provide more informative explanations \cite{SALEEM2022165}.  Specifically, having techniques to provide a quantative value of the impact of individual pixels would be more informative.  We plan to use such values to determine the sum of pixels inside the masked areas versus outside.  Similarly, one would reasonably expect the pixels near the mask to be valuable to the classification, and therefore we plan to weight pixels by proximity to the masks for analysis, not just inside or outside the mask, as was done in this study.
