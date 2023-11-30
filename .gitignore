@@ -1,0 +1,4 @@
+code/snapshots/*
+
+code/.ipynb_checkpoints
+data/Dataset_BUSI_with_GT
