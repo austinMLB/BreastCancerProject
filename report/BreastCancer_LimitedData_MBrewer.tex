@@ -118,7 +118,7 @@
 %% sample for unstructured abstract %%
 %%==================================%%
 
-\abstract{In this paper we study classifying ultrasound images of breast tissues to determine if the image contains a tumor and, if so, whether that tumor is benign or malignant.  We use this classification problem and to study the effect of a small training dataset to devise strategies for handling other image classifications for more rare conditions.  In addition, we use Explainable AI approaches to observe what areas of the image are positively or negatively impacting the classification prediction and, correspondingly, the accuracy of the prediction.}
+\abstract{In this paper we study classifying ultrasound images of breast tissues to determine if the image contains a tumor and, if so, whether that tumor is benign or malignant.  We use this classification problem to study the effect of a small training dataset to devise strategies for handling other image classifications for more rare conditions.  In addition, we use Explainable AI approaches to observe what areas of the image are positively or negatively impacting the classification prediction and, correspondingly, the accuracy of the prediction.  All code used in this report is available at https://github.com/austinMLB/BreastCancerProject/tree/master.}
 
 %%================================%%
 %% Sample for structured abstract %%
@@ -141,7 +141,7 @@
 \maketitle
 
 \section{Introduction}\label{sec_intro}
-The ability to correctly interpret medical images is critical in diagnosis and prognosis in many medical disciplines, and Convolutional Neural Networks (CNNs) have helped and continue to help revolutionalize the field \cite{2022_survey}.  Researchers have devised and trained CNNs to detect Breast Cancer ultrasound images mammograms.  For example, see \cite{AREVALO2016248}.  As one of the most common cancers in the world, Breast Cancer is widely studied, and a variety of datasets exist in the public domain for trianing models on this problem.  Other, more rare disease, have much more limited datasets world-wide, whether in the public domain or not.  Childhood cancers, for example, are much more rare than adult cancers.  Figure \ref{fig:CDC_Rates} shows the number of cancer diagnoses by age group in the US in 2019 \cite{cdc}.  Note the plot is on a log scale because of the orders of magnitude differences between childhood and adult cancers, particularly for adults over 40.  Due to this discripency, datasets for childhood cancers in general, and particularly rare childhood cancers can be prohibitively difficult to obtain.  
+The ability to correctly interpret medical images is critical in diagnosis and prognosis in many medical disciplines, and Convolutional Neural Networks (CNNs) have helped and continue to help revolutionize the field \cite{2022_survey}.  For example, researchers have devised and trained CNNs to detect Breast Cancer ultrasound images mammograms ({\it e.g.}, see \cite{AREVALO2016248}.  As one of the most common cancers in the world, Breast Cancer is widely studied, and a variety of datasets exist in the public domain for training models on this problem.  Other, more rare disease, have much more limited datasets world-wide, whether in the public domain or not.  Childhood cancers, for example, are much more rare than adult cancers.  Figure \ref{fig:CDC_Rates} shows the number of cancer diagnoses by age group in the US in 2019 \cite{cdc}.  Note the plot is on a log scale because of the orders of magnitude differences between childhood and adult cancers, particularly for adults over 40.  Due to this discrepancy, datasets for all childhood cancers but for rare childhood cancers, in particular, can be prohibitively difficult to obtain.  
 
 
 \begin{figure}[!htbp]
@@ -154,11 +154,11 @@ The ability to correctly interpret medical images is critical in diagnosis and p
 \end{figure}
 
 
-Because of the availabity of breast cancer image data, in this study we use that as a proxy for other rare diseases, specifically to study how the quantity of available training samples impacts our model.  We note there are concerns with this approach.  It is not immediately evident this breast cancer study will fairly mimick the rare diseases for which it serves as proxy.  The base models used for training may have already been exposed to Breast Cancer images, for example, or the more rare cancers could have entirely different features or heterogeneities.   However, with the breast dataset, we can restrict the data of an individual class artificially, and therefore see how the model is impacted by various levels of that restriction.
+Because of the availability of breast cancer image data, in this study we use that as a proxy for other rare diseases, specifically to study how the quantity of available training samples impacts our model.  We note there are concerns with this approach.  It is not immediately evident this breast cancer study will fairly mimic the rare diseases for which it serves as proxy.  The base models used for training may have already been exposed to Breast Cancer images, for example, or the more rare cancers could have entirely different features or heterogeneities.   However, with the breast dataset, we can restrict the data of an individual class artificially, and therefore see how the model is impacted by various levels of that restriction.
 
 
 \section{Training Data and Augmentation}\label{sec_data}
-The data used for this project is available at Kaggle https://www.kaggle.com/datasets/aryashah2k/breast-ultrasound-images-dataset .  This dataset contains 780 ultrasound images from 600 patients.  These images are classified as “normal”, “benign”, or “malignant” based on a professional classification of the existence and type of breast cancer tumors.  See \cite{breast_data}.  A sample from the maligannt class of this dataset is shown in Figure \ref{fig:example_mal}.  The image classifications are imbalanced with the distribution given in Table \ref{dataclasses}.  In this study, we perform a train-test split on the data, before any augmentation, using 80\% of the data for training and 20\% for testing.  We do not reserve a portion for validation, instead using the test data set as our final evaluation dataset.  The number of samples within each class for training and testing are also shown in  Table \ref{dataclasses}.
+The data used for this project is available at Kaggle https://www.kaggle.com/datasets/aryashah2k/breast-ultrasound-images-dataset .  This dataset contains 780 ultrasound images from 600 patients.  These images are classified as “normal”, “benign”, or “malignant” based on a professional classification of the existence and type of breast cancer tumors.  See \cite{breast_data}.  A sample from the malignant class of this dataset is shown in Figure \ref{fig:example_mal}.  The image classifications are imbalanced with the distribution given in Table \ref{dataclasses}.  In this study, we perform a train-test split on the data, before any augmentation, using 80\% of the data for training and 20\% for testing.  We do not reserve a portion for validation, instead using the test data set as our final evaluation dataset.  The number of samples within each class for training and testing are also shown in  Table \ref{dataclasses}.
 
 \begin{figure}
   \centering
@@ -245,7 +245,7 @@ All training procedures use a batch size of 32.  The learning rate was on a sche
 
 \section{Training Results}\label{sectraining}
 \subsection{Augmentation Results}\label{sectraining_augmentation}
-To evaluate the benefits of various augmentation techiques, the model was trained without any initial augmentation, with a balanced dataset, and then with an additional 2,000 sames generated for each class.  Each of these variations were performed with and without continuous data augmentation during the traing itself.  The confusion matrix results are shown in figure \ref{fig:2x3_original}.   For these results, we additionally show the precision, recall, and F1 score for the malignant class.  The focus on the malignant class is due to
+To evaluate the benefits of various augmentation techniques, the model was trained without any initial augmentation, with a balanced dataset, and then with an additional 2,000 sames generated for each class.  Each of these variations were performed with and without continuous data augmentation during the traing itself.  The confusion matrix results are shown in figure \ref{fig:2x3_original}.   For these results, we additionally show the precision, recall, and F1 score for the malignant class.  The focus on the malignant class is due to
 \begin{itemize}
 \item it being particularly important to have good recall on the malignant class due to the real-world implications of failing to recognize a malignant tumor and
 \item our use later of this class to mimic very limited data representation for certain classes.
@@ -261,14 +261,14 @@ Also of note, counter-intuitively, the balanced dataset without continuous augme
 
     \includegraphics[width=\textwidth]{summary/2x3_original.png}
 
-    \caption{A set of confusion matrices based on various hyperparameters.  On the left are confusion matrices from training without continuous augmentation, while on he right are confusion matrices with conintuous augmentation.  The first row used the original dataset without any balancing.  The second row used a balanced dataset.  The third row augments the balanced dataset by generating an addition 2,000 samples per class.}
+    \caption{A set of confusion matrices based on various hyper-parameters.  On the left are confusion matrices from training without continuous augmentation, while on he right are confusion matrices with continuous augmentation.  The first row used the original dataset without any balancing.  The second row used a balanced dataset.  The third row augments the balanced dataset by generating an addition 2,000 samples per class.}
     \label{fig:2x3_original}
 \end{figure}
 
 
 
 \begin{table}[h]
-\caption{Summary of the accuracies achieved on the test sets for varioius training approaches.}\label{dataaccuraces}
+\caption{Summary of the accuracies achieved on the test sets for various training approaches.}\label{dataaccuracies}
 \begin{tabular}{@{}lllll@{}}%
 \toprule
 Continuous Aug. & Balanced & \# for Expansion Aug.  & Accuracy & `malignant' Recall\\
@@ -286,14 +286,14 @@ True & True & 2,000 & 87\% & .86 \\
 
 
 \subsection{Mimicking Reduced Class Representations}\label{sectraining_reductions}
-To evaluate the effect of limited class represetnation in the dataset available for training, we artificially reduce the `malignant' class after performing the train/test split.  Note that this is not entirely representative of the real-world case.  Our test set still contains the 20\% representation based on the original dataset.  This is done to preserve consistency among all the runs of having the exact same test set.  Further comparisons could be done by reducing the datsaet prior to train/test in future work.
+To evaluate the effect of limited class representation in the dataset available for training, we artificially reduce the `malignant' class after performing the train/test split.  Note that this is not entirely representative of the real-world case.  Our test set still contains the 20\% representation based on the original dataset.  This is done to preserve consistency among all the runs of having the exact same test set.  Further comparisons could be done by reducing the datsaet prior to train/test in future work.
 
 \begin{figure}[!htbp]
     \centering
 
     \resizebox{!}{0.8\textheight}{\includegraphics[width=\textwidth]{summary/2x5_reductions.png}}
 
-    \caption{A set of confusion matrices based the percentage of training `malignant' class examples which were removed before augmentation and training.  On the left are confusion matrices from training without continuous augmentation, while on he right are confusion matrices with continuous augmentation.  The first row represents no reduction and is equivalent to the last rown seen in Figure \ref{fig:2x3_original}.  The second through fifth represent reductions in the `malignant' training set by 50\%, 65\%, 80\%, and 95\%, respectively.}
+    \caption{A set of confusion matrices based the percentage of training `malignant' class examples which were removed before augmentation and training.  On the left are confusion matrices from training without continuous augmentation, while on he right are confusion matrices with continuous augmentation.  The first row represents no reduction and is equivalent to the last row seen in Figure \ref{fig:2x3_original}.  The second through fifth represent reductions in the `malignant' training set by 50\%, 65\%, 80\%, and 95\%, respectively.}
     \label{fig:2x5_reductions}
 \end{figure}
 
@@ -330,9 +330,9 @@ These results may be more easily observed in Figure \ref{fig:reduction_performan
 
 
 \section{Explainability}\label{sec_explain}
-For examples of `benign' and `malignant', in particular, we now explore the pixels on which the model is focusing.  Because this dataset has the tumor mask, for applications like segmentation, in this section we utilize those masks to determine if the model is identifying the tumor types by markers inside the tumor or outside the tumore.  While it isn't strictly necessary, that the pixels inside the tumor are the most indicitive of the tumor type, that is the presumption we use here.  Further informaton from medical specialists could provide more insight on this presumption.  
-The LIME model is utilized to identify whether the pixels are positively impacting the correct tumor type classifications.  The LIME model produces its own mask, with positive values indiciating positive contribution towards a classification.  Therefore, we can generate multiple masks, one per classification type (malignant, benign, or normal), in additional to our existing tumor mask annotated in our original dataset.  
-We now sample our test datsaet and generate these LIME masks.  We can calculate the proportion of pixels inside or outside of the masked tumor area that are positively contributing towards, for example, the 'bengin' classification for a sample with truth label 'benign'.  For that same sample, we can calculate the proportions contributing towards a 'malignant' classification.  Figure \ref{fig:proportion} summarizes these results for 4 different values of our malignant reduction values discussed in Section \ref{sectraining_reductions}.  In these plots, the `x' marks represent samples with true values of `malignant', and the large 'X' signifies the mean of that group.  Similarly, the dots represent `benign'.  
+For examples of `benign' and `malignant', in particular, we now explore the pixels on which the model is focusing.  Because this dataset has the tumor mask, for applications like segmentation, in this section we utilize those masks to determine if the model is identifying the tumor types by markers inside the tumor or outside the tumor.  While it isn't strictly necessary that the pixels inside the tumor are the most indicative of the tumor type, that is the presumption we use here.  Further information from medical specialists could provide more insight on this presumption.  
+The LIME model is utilized to identify whether the pixels are positively impacting classification of the correct tumor type.  The LIME model produces its own mask, with positive values indicating positive contribution towards a classification.  Therefore, we can generate multiple masks, one per classification type (malignant, benign, or normal), in additional to our existing tumor mask annotated in our original dataset.  
+We now sample our test datsaet and generate these LIME masks.  We can calculate the proportion of pixels inside or outside of the masked tumor area that are positively contributing towards, for example, the `benign' classification for a sample with truth label 	`benign'.  For that same sample, we can calculate the proportions contributing towards a `malignant' classification.  Figure \ref{fig:proportion} summarizes these results for 4 different values of our malignant reduction values discussed in Section \ref{sectraining_reductions}.  In these plots, the `x' marks represent samples with true values of `malignant', and the large 'X' signifies the mean of that group.  Similarly, the dots represent `benign'.  
 Of most significant note, the mean of the `malignant' class lowers for `malignant' classification as the reduction ratio increases.  This means that fewer pixels are contributing correctly to the malignant class. 
 
 \begin{figure}[!htbp]
@@ -341,7 +341,7 @@ Of most significant note, the mean of the `malignant' class lowers for `malignan
     \resizebox{!}{0.8\textheight}{\includegraphics[width=\textwidth]{summary/proportion_mal_and_benign_all.png}}
     %\includegraphics[width=\textwidth]{summary/proportion_mal_and_benign_all.png}
 
-    \caption{Each plot shows the proportion of pixels contributing to a prediction.  The x-axis shows the proportion inside the tumor mask positively contributing to the prediction, while the y-axis shows the proportion of pixels outside tumor mask positively contributing.  On the left chart, we consider contriubtions towards the correct label, and on the right, we consider contributions towards the wrong label.}
+    \caption{Each plot shows the proportion of pixels contributing to a prediction.  The x-axis shows the proportion inside the tumor mask positively contributing to the prediction, while the y-axis shows the proportion of pixels outside tumor mask positively contributing.  On the left chart, we consider contributions towards the correct label, and on the right, we consider contributions towards the wrong label.}
     \label{fig:proportion}
 \end{figure}
 
@@ -361,7 +361,7 @@ To summarize the behavior of the model for pixels within the tumor mask, we plot
 In this paper, we demonstrate that data augmentation techniques can significantly improve the performance of the EfficientNetB2 when classifying tumor types from an initial dataset of a few hundred samples.  If we are concerned primarily with one specific class which is severely under-represented in our dataset, data augmentation was not sufficient for maintaining the model's accuracy.  Further work would be required to develop additional techniques to both account for these very limited datasets and to explain the model's behavior for these under-represented classes.  
 \section{Future Work}\label{sec_future}
 
-In the present work, the LIME model was used to generate explanatory masks.  However, other techniques like SHAP or Layer-wise Relevance BackPropagation (LRP) might provide more informative explanations \cite{SALEEM2022165}.  Specifically, having techniques to provide a quantative value of the impact of individual pixels would be more informative.  We plan to use such values to determine the sum of pixels inside the masked areas versus outside.  Similarly, one would reasonably expect the pixels near the mask to be valuable to the classification, and therefore we plan to weight pixels by proximity to the masks for analysis, not just inside or outside the mask, as was done in this study.
+In the present work, the LIME model was used to generate explanatory masks.  However, other techniques like SHAP or Layer-wise Relevance BackPropagation (LRP) might provide more informative explanations \cite{SALEEM2022165}.  Specifically, having techniques to provide a quantitative value of the impact of individual pixels would be more informative.  We plan to use such values to determine the sum of pixels inside the masked areas versus outside.  Similarly, one would reasonably expect the pixels outside but near the mask to be valuable to the classification, and therefore we plan to weight pixels by proximity to the masks for analysis, not just inside or outside the mask, as was done in this study.
 
 %\begin{appendices}
 

@@ -18,7 +18,7 @@ These are Fiji scripts to generate synthetic data
 Stores some generic data but the primary data should be pulled from Kaggle.
 
 # References
-
+See report.
 [1] Sarvamangala, D.R., Kulkarni, R.V.: Convolutional neural networks in medical
 image understanding: a survey. Evolutionary Intelligence (2022) https://doi.org/
 10.1007/s12065-020-00540-3 \
